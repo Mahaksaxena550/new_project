@@ -70,14 +70,6 @@ export default function Signup() {
             {errors.email && <p className="error">{errors.email}</p>}
             <input className="input" name="email" placeholder="Email" value={form.email} onChange={handleChange} />
 
-            {/* AGE */}
-            {errors.age && <p className="error">{errors.age}</p>}
-            <input className="input" name="age" placeholder="Age" value={form.age} onChange={handleChange} />
-
-            {/* CITY */}
-            {errors.city && <p className="error">{errors.city}</p>}
-            <input className="input" name="city" placeholder="City" value={form.city} onChange={handleChange} />
-
             {/* CONTACT */}
             {errors.contact && <p className="error">{errors.contact}</p>}
             <input className="input" name="contact" placeholder="Contact" value={form.contact} onChange={handleChange} />

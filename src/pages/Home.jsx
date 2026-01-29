@@ -1,14 +1,16 @@
 import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { gsap } from "gsap";
+
 import PageTransition from "../components/ui/PageTransition.jsx";
 import MagneticButton from "../components/ui/MagneticButton.jsx";
 import FloatingCard from "../components/ui/FloatingCard.jsx";
+
 import DoctorsSection from "../components/sections/DoctorsSection.jsx";
-import TestimonialsSection from "../components/sections/TestimonialsSection.jsx";
+import TestimonialsSlider from "../components/sections/TestimonialsSlider.jsx";
 import { isLoggedIn } from "../utils/storage.js";
 
-const SERVICES = [
+const services = [
   { title: "24x7 Emergency", desc: "Rapid response team and ICU-ready support." },
   { title: "Diagnostics", desc: "X-ray, ultrasound, pathology & advanced tests." },
   { title: "Cardiac Care", desc: "ECG/ECHO and specialist consultation." },
@@ -17,52 +19,39 @@ const SERVICES = [
   { title: "Physiotherapy", desc: "Rehab, posture correction & pain management." },
 ];
 
-function SectionTitle({ eyebrow, title, desc }) {
-  return (
-    <div className="mb-6">
-      <p className="text-white/60 text-sm tracking-wider uppercase">{eyebrow}</p>
-      <h2 className="text-2xl sm:text-3xl font-semibold mt-2">{title}</h2>
-      {desc && <p className="text-white/70 mt-2 max-w-2xl">{desc}</p>}
-    </div>
-  );
-}
-
-function ServiceCard({ title, desc }) {
-  return (
-    <div className="group glass rounded-3xl p-5 border border-white/10 hover:border-white/20 transition hover:bg-white/10">
-      <div className="h-10 w-10 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center">
-        <span className="text-white/80">+</span>
-      </div>
-      <h3 className="mt-4 font-semibold text-lg text-white/90">{title}</h3>
-      <p className="mt-2 text-white/70 text-sm">{desc}</p>
-      <div className="mt-4 h-[2px] w-0 group-hover:w-full transition-all duration-500 bg-emerald-400/50" />
-    </div>
-  );
-}
-
 export default function Home() {
   const nav = useNavigate();
-  const heroRef = useRef(null);
-  const logged = isLoggedIn();
+  const boxRef = useRef(null);
+
+  let logged = isLoggedIn();
 
   useEffect(() => {
+    // simple gsap entry animation
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ".heroIn",
         { opacity: 0, y: 18, filter: "blur(10px)" },
-        { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.9, ease: "power3.out", stagger: 0.08 }
+        {
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          duration: 0.9,
+          ease: "power3.out",
+          stagger: 0.08,
+        }
       );
-    }, heroRef);
+    }, boxRef);
+
     return () => ctx.revert();
   }, []);
 
   return (
     <PageTransition>
-      <div ref={heroRef}>
+      <div ref={boxRef}>
         {/* HERO */}
-        <section className="pt-4">
-          {/* ✅ Mobile optimized: stack on small, 2-col on lg */}
+        <div className="pt-4">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
+            {/* LEFT */}
             <div>
               <div className="heroIn inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/5 border border-white/10">
                 <span className="text-white/70 text-sm">
@@ -80,7 +69,6 @@ export default function Home() {
                 Book appointments, choose specialists, and manage your visits with a smooth premium experience.
               </p>
 
-              {/* ✅ Mobile optimized buttons */}
               <div className="heroIn mt-8 flex flex-col sm:flex-row gap-3">
                 <MagneticButton onClick={() => nav("/appointment")}>
                   Book Appointment
@@ -119,7 +107,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* RIGHT HERO CARD */}
+            {/* RIGHT */}
             <div className="heroIn">
               <FloatingCard>
                 <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5">
@@ -162,42 +150,63 @@ export default function Home() {
               </FloatingCard>
             </div>
           </div>
-        </section>
+        </div>
 
         {/* SERVICES */}
-        <section className="mt-16">
-          <SectionTitle
-            eyebrow="Departments & Services"
-            title="Complete care under one roof"
-            desc="Multi-specialist services with modern diagnostics and a patient-first approach."
-          />
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {SERVICES.map((s) => (
-              <ServiceCard key={s.title} title={s.title} desc={s.desc} />
+        <div className="mt-16">
+          <p className="text-white/60 text-sm tracking-wider uppercase">
+            Departments & Services
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-semibold mt-2">
+            Complete care under one roof
+          </h2>
+          <p className="text-white/70 mt-2 max-w-2xl">
+            Multi-specialist services with modern diagnostics and a patient-first approach.
+          </p>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+            {services.map((s) => (
+              <div
+                key={s.title}
+                className="group glass rounded-3xl p-5 border border-white/10 hover:border-white/20 transition hover:bg-white/10"
+              >
+                <div className="h-10 w-10 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center">
+                  <span className="text-white/80">+</span>
+                </div>
+                <h3 className="mt-4 font-semibold text-lg text-white/90">
+                  {s.title}
+                </h3>
+                <p className="mt-2 text-white/70 text-sm">{s.desc}</p>
+                <div className="mt-4 h-[2px] w-0 group-hover:w-full transition-all duration-500 bg-emerald-400/50" />
+              </div>
             ))}
           </div>
-        </section>
+        </div>
 
-        {/* 👩‍⚕️ DOCTORS CARDS */}
+        {/* DOCTORS */}
         <DoctorsSection onBook={() => nav("/appointment")} />
 
-        {/* 🗣️ TESTIMONIALS */}
-        <TestimonialsSection />
+        {/* TESTIMONIALS SLIDER */}
+        <TestimonialsSlider />
 
         {/* CTA */}
-        <section className="mt-16 mb-6">
+        <div className="mt-16 mb-6">
           <div className="glass rounded-3xl p-7 border border-white/10 overflow-hidden relative">
-            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl opacity-30
-                            bg-[radial-gradient(circle_at_30%_30%,rgba(34,197,94,0.7),transparent_60%)]" />
+            <div
+              className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl opacity-30
+                         bg-[radial-gradient(circle_at_30%_30%,rgba(34,197,94,0.7),transparent_60%)]"
+            />
             <div className="relative">
               <h3 className="text-2xl font-semibold">Ready to book your visit?</h3>
               <p className="text-white/70 mt-2 max-w-2xl">
                 Choose a doctor, pick a slot and confirm—simple and fast.
               </p>
+
               <div className="mt-5 flex flex-col sm:flex-row gap-3">
                 <MagneticButton onClick={() => nav("/appointment")}>
                   Book Appointment
                 </MagneticButton>
+
                 <button
                   onClick={() => nav("/contact")}
                   className="px-5 py-3 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/10 transition"
@@ -207,7 +216,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </section>
+        </div>
       </div>
     </PageTransition>
   );

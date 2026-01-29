@@ -13,20 +13,21 @@ const DOCTORS = [
 ];
 
 const SLOTS = ["09:00 AM", "10:30 AM", "12:00 PM", "03:00 PM", "04:30 PM", "06:00 PM"];
-
-const todayISO = new Date().toISOString().split("T")[0]; // ✅ past dates blocked
+const todayISO = new Date().toISOString().split("T")[0];
 
 export default function Appointment() {
   const nav = useNavigate();
   const user = getAuthUser();
 
   const [step, setStep] = useState(1);
-
   const [doctorId, setDoctorId] = useState(DOCTORS[0].id);
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState("");
   const [symptoms, setSymptoms] = useState("");
   const [success, setSuccess] = useState(false);
+
+  const [msg, setMsg] = useState("");       // ✅ inline message
+  const [saving, setSaving] = useState(false); // ✅ disable confirm while saving
 
   const doctor = useMemo(() => DOCTORS.find((d) => d.id === doctorId), [doctorId]);
 
@@ -35,60 +36,81 @@ export default function Appointment() {
     if (!isLoggedIn()) nav("/login", { replace: true });
   }, [nav]);
 
-  // ✅ step animation
+  // ✅ cleaner animation
   useEffect(() => {
-    gsap.fromTo(
-      ".stepCard",
-      { opacity: 0, y: 16, filter: "blur(10px)" },
-      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "power3.out" }
-    );
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".stepCard",
+        { opacity: 0, y: 16, filter: "blur(10px)" },
+        { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "power3.out" }
+      );
+    });
+    return () => ctx.revert();
   }, [step, success]);
 
-  // ✅ polish: button states
   const canGoNext = () => {
-    if (step === 1) return true; // doctor always selected
-    if (step === 2) return !!date && !!slot; // must pick both
+    if (step === 1) return true;
+    if (step === 2) return !!date && !!slot;
     return true;
   };
 
-  const canConfirm = () => symptoms.trim().length >= 3;
+  const canConfirm = () => symptoms.trim().length >= 3 && !saving;
+
+  const progressWidth = step === 1 ? "w-1/3" : step === 2 ? "w-2/3" : "w-full";
 
   const next = () => {
+    setMsg("");
     if (step === 1) setStep(2);
     else if (step === 2) {
-      if (!date) return;
-      if (!slot) return;
+      if (!date || !slot) {
+        setMsg("Please select Date + Time Slot first.");
+        return;
+      }
       setStep(3);
     }
   };
 
-  const back = () => setStep((s) => Math.max(1, s - 1));
+  const back = () => {
+    setMsg("");
+    setStep((s) => Math.max(1, s - 1));
+  };
 
   const confirm = () => {
-    if (!canConfirm()) return;
+    setMsg("");
 
-    const appt = {
-      id: crypto?.randomUUID?.() || String(Date.now()),
-      userEmail: user?.email,
-      userName: user?.name,
-      doctorId: doctor.id,
-      doctorName: doctor.name,
-      specialty: doctor.spec,
-      fee: doctor.fee,
-      date,
-      slot,
-      symptoms,
-      createdAt: new Date().toISOString(),
-    };
+    if (!canConfirm()) {
+      setMsg("Please write symptoms (minimum 3 letters).");
+      return;
+    }
 
-    saveAppointment(appt);
-    setSuccess(true);
+    setSaving(true);
 
-    gsap.fromTo(
-      ".successPop",
-      { scale: 0.96, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" }
-    );
+    // ✅ small delay so user feels "saving"
+    setTimeout(() => {
+      const appt = {
+        id: crypto?.randomUUID?.() || String(Date.now()),
+        userEmail: user?.email,
+        userName: user?.name,
+        doctorId: doctor.id,
+        doctorName: doctor.name,
+        specialty: doctor.spec,
+        fee: doctor.fee,
+        date,
+        slot,
+        symptoms,
+        createdAt: new Date().toISOString(),
+      };
+
+      saveAppointment(appt);
+      setSaving(false);
+      setSuccess(true);
+
+      gsap.fromTo(
+        ".successPop",
+        { scale: 0.96, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" }
+      );
+    }, 600);
   };
 
   const resetForm = () => {
@@ -98,6 +120,8 @@ export default function Appointment() {
     setDate("");
     setSlot("");
     setSymptoms("");
+    setMsg("");
+    setSaving(false);
   };
 
   return (
@@ -116,22 +140,34 @@ export default function Appointment() {
               </div>
 
               <div className="flex gap-2 flex-wrap">
-                <span className={`px-3 py-1 rounded-2xl text-sm border ${step === 1 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"} `}>
+                <span className={`px-3 py-1 rounded-2xl text-sm border ${step === 1 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"}`}>
                   1. Doctor
                 </span>
-                <span className={`px-3 py-1 rounded-2xl text-sm border ${step === 2 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"} `}>
+                <span className={`px-3 py-1 rounded-2xl text-sm border ${step === 2 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"}`}>
                   2. Slot
                 </span>
-                <span className={`px-3 py-1 rounded-2xl text-sm border ${step === 3 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"} `}>
+                <span className={`px-3 py-1 rounded-2xl text-sm border ${step === 3 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"}`}>
                   3. Confirm
                 </span>
               </div>
             </div>
 
+            {/* ✅ Progress bar */}
+            <div className="mt-4 w-full h-2 rounded-full bg-white/5 border border-white/10 overflow-hidden">
+              <div className={`h-full ${progressWidth} bg-emerald-400/60`} />
+            </div>
+
+            {/* ✅ Inline message */}
+            {msg ? (
+              <div className="mt-4 px-4 py-3 rounded-2xl bg-amber-500/10 border border-amber-400/20 text-amber-100 text-sm">
+                {msg}
+              </div>
+            ) : null}
+
             {/* BODY */}
             {!success && (
               <>
-                {/* STEP 1: Doctor */}
+                {/* STEP 1 */}
                 {step === 1 && (
                   <div className="mt-6">
                     <p className="text-white/80 font-medium mb-3">Choose your doctor</p>
@@ -157,7 +193,7 @@ export default function Appointment() {
                   </div>
                 )}
 
-                {/* STEP 2: Date + Slot */}
+                {/* STEP 2 */}
                 {step === 2 && (
                   <div className="mt-6">
                     <p className="text-white/80 font-medium mb-3">Pick date & time</p>
@@ -165,23 +201,18 @@ export default function Appointment() {
                     <div className="grid sm:grid-cols-2 gap-3">
                       <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
                         <label className="text-white/70 text-sm">Select Date</label>
-
                         <input
                           type="date"
-                          min={todayISO} // ✅ past disabled
+                          min={todayISO}
                           value={date}
                           onChange={(e) => setDate(e.target.value)}
                           className="mt-2 w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 outline-none"
                         />
-
-                        <p className="text-white/50 text-xs mt-2">
-                          Past date select nahi hogi ✅
-                        </p>
+                        <p className="text-white/50 text-xs mt-2">Past date disabled ✅</p>
                       </div>
 
                       <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
                         <label className="text-white/70 text-sm">Time Slots</label>
-
                         <div className="mt-3 flex flex-wrap gap-2">
                           {SLOTS.map((t) => (
                             <button
@@ -195,18 +226,15 @@ export default function Appointment() {
                             </button>
                           ))}
                         </div>
-
-                        {!date || !slot ? (
-                          <p className="text-amber-200/80 text-xs mt-3">
-                            Date + Slot dono select karo tab Next enable hoga.
-                          </p>
-                        ) : null}
+                        <p className="text-white/50 text-xs mt-3">
+                          {date && slot ? "Ready for Next ✅" : "Select date + slot to continue."}
+                        </p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* STEP 3: Confirm */}
+                {/* STEP 3 */}
                 {step === 3 && (
                   <div className="mt-6">
                     <p className="text-white/80 font-medium mb-3">Confirm details</p>
@@ -235,11 +263,7 @@ export default function Appointment() {
                         placeholder="Eg: fever, headache, skin allergy..."
                         className="mt-2 w-full min-h-[110px] px-4 py-3 rounded-2xl bg-white/5 border border-white/10 outline-none resize-none"
                       />
-                      {!canConfirm() ? (
-                        <p className="text-amber-200/80 text-xs mt-2">
-                          Minimum 3 characters likho, tab Confirm enable hoga.
-                        </p>
-                      ) : null}
+                      <p className="text-white/50 text-xs mt-2">Min 3 letters.</p>
                     </div>
                   </div>
                 )}
@@ -248,7 +272,7 @@ export default function Appointment() {
                 <div className="mt-6 flex items-center justify-between">
                   <button
                     onClick={back}
-                    disabled={step === 1}
+                    disabled={step === 1 || saving}
                     className="px-5 py-2.5 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/10 transition
                                disabled:opacity-40 disabled:hover:bg-white/5"
                     type="button"
@@ -259,7 +283,7 @@ export default function Appointment() {
                   {step < 3 ? (
                     <button
                       onClick={next}
-                      disabled={!canGoNext()}
+                      disabled={!canGoNext() || saving}
                       className="px-6 py-2.5 rounded-2xl bg-white/15 hover:bg-white/20 transition border border-white/15 relative overflow-hidden
                                  disabled:opacity-40 disabled:hover:bg-white/15"
                       type="button"
@@ -276,7 +300,7 @@ export default function Appointment() {
                                  disabled:opacity-40 disabled:hover:bg-emerald-500/20"
                       type="button"
                     >
-                      Confirm Booking
+                      {saving ? "Saving..." : "Confirm Booking"}
                     </button>
                   )}
                 </div>
@@ -315,7 +339,7 @@ export default function Appointment() {
           </div>
         </div>
 
-        {/* RIGHT: Cartoon Doctor */}
+        {/* RIGHT */}
         <div className="lg:col-span-1">
           <DoctorCartoon className="sticky top-6" />
         </div>
