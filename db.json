@@ -1,0 +1,30 @@
+{
+  "appointments": [
+    {
+      "id": "1769740556509",
+      "userEmail": "mickey.saxena3@gmail.com",
+      "userName": "Mahak Saxena",
+      "doctorId": "d4",
+      "doctorName": "Dr. Kabir Singh",
+      "specialty": "General Physician",
+      "fee": 300,
+      "date": "2026-01-31",
+      "slot": "09:00 AM",
+      "symptoms": "fever",
+      "createdAt": "2026-01-30T02:35:56.509Z"
+    },
+    {
+      "id": "1769740993629",
+      "userEmail": "mickey.saxena3@gmail.com",
+      "userName": "Mahak Saxena",
+      "doctorId": "d3",
+      "doctorName": "Dr. Neha Sharma",
+      "specialty": "Pediatrician",
+      "fee": 500,
+      "date": "2026-02-07",
+      "slot": "06:00 PM",
+      "symptoms": "clod",
+      "createdAt": "2026-01-30T02:43:13.629Z"
+    }
+  ]
+}
