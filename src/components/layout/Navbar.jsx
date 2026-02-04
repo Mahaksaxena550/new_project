@@ -1,18 +1,22 @@
 import React, { useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import MagneticButton from "../ui/MagneticButton.jsx";
 import DepartmentsMega from "../ui/DepartmentsMega.jsx";
 import LogoMark from "../ui/LogoMark.jsx";
 import { isLoggedIn, logout } from "../../utils/storage.js";
 
 export default function Navbar() {
+  // basic nav stuff
   const nav = useNavigate();
   const { pathname } = useLocation();
+
+  // login check
   const logged = isLoggedIn();
 
+  // mega + mobile
   const [openMega, setOpenMega] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // links list
   const links = useMemo(
     () => [
       { to: "/", label: "Home" },
@@ -26,43 +30,59 @@ export default function Navbar() {
     []
   );
 
+  // active check
   const active = (to) => pathname === to;
 
+  // logout
   const handleLogout = () => {
     logout();
     nav("/login", { replace: true });
   };
 
+  // simple go
+  const go = (to) => {
+    setMobileOpen(false);
+    nav(to);
+  };
+
   return (
     <header className="relative z-40">
+      {/* fixed navbar */}
       <nav className="fixed top-0 left-0 w-full z-50">
         <div className="bg-slate-950/55 backdrop-blur-xl border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <div className="h-16 flex items-center justify-between gap-6">
-
-              {/* LOGO */}
-              <Link to="/" className="shrink-0">
-               <LogoMark size={56} />
+            <div className="h-16 flex items-center gap-6">
+              {/* LOGO (one time only) */}
+              <Link to="/" className="shrink-0 flex items-center">
+                <LogoMark size={56} />
               </Link>
 
               {/* DESKTOP LINKS */}
               <div className="hidden xl:flex flex-1 justify-center">
                 <ul className="flex items-center gap-6 text-white/70 text-sm font-medium">
+                  {/* first 3 */}
                   {links.slice(0, 3).map((l) => (
                     <li key={l.to}>
-                      <Link to={l.to} className={`navlink ${active(l.to) ? "navactive" : ""}`}>
+                      <Link
+                        to={l.to}
+                        className={`navlink ${active(l.to) ? "navactive" : ""}`}
+                      >
                         {l.label}
                       </Link>
                     </li>
                   ))}
 
-                  {/* mega */}
+                  {/* mega menu */}
                   <li
                     className="relative"
                     onMouseEnter={() => setOpenMega(true)}
                     onMouseLeave={() => setOpenMega(false)}
                   >
-                    <span className={`navlink cursor-pointer ${openMega ? "navactive" : ""}`}>
+                    <span
+                      className={`navlink cursor-pointer ${
+                        openMega ? "navactive" : ""
+                      }`}
+                    >
                       Departments & Services
                     </span>
 
@@ -75,9 +95,13 @@ export default function Navbar() {
                     )}
                   </li>
 
+                  {/* rest */}
                   {links.slice(3).map((l) => (
                     <li key={l.to}>
-                      <Link to={l.to} className={`navlink ${active(l.to) ? "navactive" : ""}`}>
+                      <Link
+                        to={l.to}
+                        className={`navlink ${active(l.to) ? "navactive" : ""}`}
+                      >
                         {l.label}
                       </Link>
                     </li>
@@ -85,67 +109,122 @@ export default function Navbar() {
                 </ul>
               </div>
 
-              {/* RIGHT */}
-              <div className="flex items-center gap-3 shrink-0">
+              {/* RIGHT SIDE */}
+              <div className="ml-auto flex items-center gap-3 shrink-0">
+                {/* ✅ NOT logged in => show Appointment */}
+                {!logged && (
+                  <button
+                    onClick={() => go("/appointment")}
+                    className="px-4 py-2 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition text-sm text-white/90"
+                    type="button"
+                  >
+                    Appointment
+                  </button>
+                )}
+
+                {/* ✅ logged in => show Dashboard + Logout */}
                 {logged && (
                   <div className="hidden md:flex items-center gap-2">
                     <button
-                      onClick={() => nav("/dashboard")}
+                      onClick={() => go("/dashboard")}
                       className="px-4 py-2 rounded-2xl bg-white/5 border border-white/10 text-white/80
                                  hover:bg-white/10 hover:text-white transition"
+                      type="button"
                     >
                       Dashboard
                     </button>
+
                     <button
                       onClick={handleLogout}
                       className="px-4 py-2 rounded-2xl bg-red-500/10 border border-red-400/20 text-red-200
                                  hover:bg-red-500/15 transition"
+                      type="button"
                     >
                       Logout
                     </button>
                   </div>
                 )}
 
-                <MagneticButton onClick={() => nav("/appointment")}>
-                  Appointment
-                </MagneticButton>
-
-                {/* MOBILE MENU */}
+                {/* MOBILE MENU BTN */}
                 <button
                   className="xl:hidden h-11 w-11 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition grid place-items-center"
                   onClick={() => setMobileOpen((v) => !v)}
                   aria-label="Open menu"
+                  type="button"
                 >
-                  <span className="text-white/90 text-xl">{mobileOpen ? "✕" : "☰"}</span>
+                  <span className="text-white/90 text-xl">
+                    {mobileOpen ? "✕" : "☰"}
+                  </span>
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* MOBILE DROPDOWN (simple) */}
+        {/* MOBILE DROPDOWN */}
         {mobileOpen && (
           <div className="xl:hidden bg-slate-950/80 backdrop-blur-xl border-b border-white/10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 grid gap-2">
+              {/* links */}
               {links.map((l) => (
                 <button
                   key={l.to}
-                  onClick={() => { setMobileOpen(false); nav(l.to); }}
+                  onClick={() => go(l.to)}
                   className={`text-left px-4 py-3 rounded-2xl border transition
-                    ${active(l.to)
-                      ? "bg-white/10 border-white/15 text-white"
-                      : "bg-white/5 border-white/10 text-white/80 hover:bg-white/10"}`}
+                    ${
+                      active(l.to)
+                        ? "bg-white/10 border-white/15 text-white"
+                        : "bg-white/5 border-white/10 text-white/80 hover:bg-white/10"
+                    }`}
+                  type="button"
                 >
                   {l.label}
                 </button>
               ))}
+
+              {/* mobile extra buttons */}
+              <div className="h-px bg-white/10 my-1" />
+
+              {/* ✅ NOT logged in => Appointment */}
+              {!logged && (
+                <button
+                  onClick={() => go("/appointment")}
+                  className="text-left px-4 py-3 rounded-2xl bg-white/10 border border-white/15 text-white"
+                  type="button"
+                >
+                  Appointment
+                </button>
+              )}
+
+              {/* ✅ logged in => dashboard + logout */}
+              {logged && (
+                <>
+                  <button
+                    onClick={() => go("/dashboard")}
+                    className="text-left px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white/85 hover:bg-white/10"
+                    type="button"
+                  >
+                    Dashboard
+                  </button>
+
+                  <button
+                    onClick={handleLogout}
+                    className="text-left px-4 py-3 rounded-2xl bg-red-500/10 border border-red-400/20 text-red-200 hover:bg-red-500/15"
+                    type="button"
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
       </nav>
 
+      {/* spacer because nav fixed */}
       <div className="h-16" />
 
+      {/* small css for underline */}
       <style>{`
         .navlink{
           position:relative;

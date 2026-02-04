@@ -1,19 +1,6 @@
 {
   "appointments": [
     {
-      "id": "1769740556509",
-      "userEmail": "mickey.saxena3@gmail.com",
-      "userName": "Mahak Saxena",
-      "doctorId": "d4",
-      "doctorName": "Dr. Kabir Singh",
-      "specialty": "General Physician",
-      "fee": 300,
-      "date": "2026-01-31",
-      "slot": "09:00 AM",
-      "symptoms": "fever",
-      "createdAt": "2026-01-30T02:35:56.509Z"
-    },
-    {
       "id": "1769740993629",
       "userEmail": "mickey.saxena3@gmail.com",
       "userName": "Mahak Saxena",
@@ -25,6 +12,59 @@
       "slot": "06:00 PM",
       "symptoms": "clod",
       "createdAt": "2026-01-30T02:43:13.629Z"
+    },
+    {
+      "id": "1770103518294",
+      "userEmail": "mickey.saxena3@gmail.com",
+      "userName": "Mahak Saxena",
+      "doctorId": "d2",
+      "doctorName": "Dr. Rohan Mehta",
+      "specialty": "Dermatologist",
+      "fee": 450,
+      "date": "2026-02-12",
+      "slot": "04:30 PM",
+      "symptoms": "der",
+      "createdAt": "2026-02-03T07:25:18.294Z",
+      "updatedAt": "2026-02-04T01:41:43.405Z"
+    },
+    {
+      "id": 1770169512408,
+      "userEmail": "mickey.saxena3@gmail.com",
+      "userName": "Mahak Saxena",
+      "doctorId": "d1",
+      "doctorName": "Dr. Asha Verma",
+      "specialty": "Cardiologist",
+      "fee": 600,
+      "date": "2026-02-20",
+      "slot": "03:00 PM",
+      "symptoms": "defver",
+      "createdAt": "2026-02-04T01:45:12.408Z"
+    },
+    {
+      "id": 1770170001178,
+      "userEmail": "mickey.saxena3@gmail.com",
+      "userName": "Mahak Saxena",
+      "doctorId": "d4",
+      "doctorName": "Dr. Kabir Singh",
+      "specialty": "General Physician",
+      "fee": 300,
+      "date": "2026-02-13",
+      "slot": "04:30 PM",
+      "symptoms": "dfrrr",
+      "createdAt": "2026-02-04T01:53:21.178Z"
+    },
+    {
+      "id": 1770172412763,
+      "userEmail": "mickey.saxena3@gmail.com",
+      "userName": "Mahak Saxena",
+      "doctorId": "d1",
+      "doctorName": "Dr. Asha Verma",
+      "specialty": "Cardiologist",
+      "fee": 600,
+      "date": "2026-02-13",
+      "slot": "12:00 PM",
+      "symptoms": "hhhnjj",
+      "createdAt": "2026-02-04T02:33:32.763Z"
     }
   ]
 }
