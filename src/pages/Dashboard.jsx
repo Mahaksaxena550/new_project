@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { gsap } from "gsap";
 import PageTransition from "../components/ui/PageTransition.jsx";
 import { getAuthUser, logout, isLoggedIn } from "../utils/storage.js";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
+
 
 const API = "http://localhost:5000";
 const slots = ["09:00 AM", "10:30 AM", "12:00 PM", "03:00 PM", "04:30 PM", "06:00 PM"];
@@ -55,11 +58,11 @@ export default function Dashboard() {
     try {
       setLoad(true);
 
-      // sir wala simple logic
+      //simple logic
       let url = `${API}/appointments?userEmail=${encodeURIComponent(user?.email || "")}`;
       let res = await fetch(url);
       if (!res.ok) {
-        showToast("API nahi chal rahi");
+        showToast("API is not working");
         setAll([]);
         setLoad(false);
         return;
@@ -99,24 +102,35 @@ export default function Dashboard() {
     nav("/", { replace: true });
   }
 
-  async function cancelAppt(id) {
-    let ok = confirm("Cancel appointment");
-    if (!ok) return;
+let cancelAppt = async (id) => {
+  let result = await Swal.fire({
+    title: "Cancel appointment",
+    text: "Do you to delete appointment?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, Cancel",
+    cancelButtonText: "No",
+  });
 
-    try {
-      let res = await fetch(`${API}/appointments/${id}`, { method: "DELETE" });
+  if (!result.isConfirmed) return;
 
-      if (!(res.status === 200 || res.status === 204)) {
-        showToast("Cancel fail");
-        return;
-      }
+  try {
+    let res = await fetch(`${API}/appointments/${id}`, {
+      method: "DELETE",
+    });
 
-      setAll((old) => old.filter((x) => x.id !== id));
-      showToast("Cancelled ✅");
-    } catch (err) {
+    if (!(res.status === 200 || res.status === 204)) {
       showToast("Cancel fail");
+      return;
     }
+
+    setAll((old) => old.filter((x) => x.id !== id));
+    showToast("Cancelled ✅");
+  } catch (err) {
+    showToast("Cancel fail");
   }
+};
+
 
   function openReschedule(a) {
     setEditId(a.id);

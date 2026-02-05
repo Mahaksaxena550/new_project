@@ -66,11 +66,13 @@ export default function Appointment() {
 
   function canNext() {
     if (step === 1) return true;
+
     if (step === 2) {
       if (date === "") return false;
       if (slot === "") return false;
       return true;
     }
+
     return true;
   }
 
@@ -100,9 +102,8 @@ export default function Appointment() {
       return;
     }
 
-    // simple body
+    // ✅ FIX: id yaha mat bhejo (json-server khud id banayega)
     let appt = {
-      id: Date.now(), // json-server ke liye ok
       userEmail: user?.email,
       userName: user?.name,
       doctorId: doctor.id,
@@ -126,6 +127,9 @@ export default function Appointment() {
         showToast("Booked failed");
         return;
       }
+
+      // ✅ saved object (id json-server se aayega)
+      await res.json();
 
       setSuccess(true);
       showToast("Booked ✅");
@@ -156,19 +160,29 @@ export default function Appointment() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-semibold">Book Appointment</h2>
-                <p className="text-white/70 mt-1">
-                  {user?.name ? `Logged in as ${user.name}` : "Logged in"}
-                </p>
+                <p className="text-white/70 mt-1">{user?.name ? `Logged in as ${user.name}` : "Logged in"}</p>
               </div>
 
               <div className="flex gap-2 flex-wrap">
-                <span className={`px-3 py-1 rounded-2xl text-sm border ${step === 1 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"}`}>
+                <span
+                  className={`px-3 py-1 rounded-2xl text-sm border ${
+                    step === 1 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"
+                  }`}
+                >
                   1. Doctor
                 </span>
-                <span className={`px-3 py-1 rounded-2xl text-sm border ${step === 2 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"}`}>
+                <span
+                  className={`px-3 py-1 rounded-2xl text-sm border ${
+                    step === 2 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"
+                  }`}
+                >
                   2. Slot
                 </span>
-                <span className={`px-3 py-1 rounded-2xl text-sm border ${step === 3 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"}`}>
+                <span
+                  className={`px-3 py-1 rounded-2xl text-sm border ${
+                    step === 3 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"
+                  }`}
+                >
                   3. Confirm
                 </span>
               </div>
@@ -191,7 +205,11 @@ export default function Appointment() {
                             type="button"
                             onClick={() => setDoctorId(d.id)}
                             className={`text-left p-4 rounded-2xl border transition
-                              ${selected ? "bg-white/15 border-emerald-300/40 shadow-[0_0_0_1px_rgba(52,211,153,0.25)]" : "bg-white/5 border-white/10 hover:bg-white/10"}`}
+                              ${
+                                selected
+                                  ? "bg-white/15 border-emerald-300/40 shadow-[0_0_0_1px_rgba(52,211,153,0.25)]"
+                                  : "bg-white/5 border-white/10 hover:bg-white/10"
+                              }`}
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div>
@@ -201,7 +219,6 @@ export default function Appointment() {
                               <div className="text-sm text-white/70">₹{d.fee}</div>
                             </div>
 
-                            {/* small selected tag */}
                             {selected ? (
                               <div className="mt-3 inline-flex text-xs px-3 py-1 rounded-2xl bg-emerald-500/15 border border-emerald-400/20 text-emerald-100">
                                 Selected
@@ -245,7 +262,11 @@ export default function Appointment() {
                                 type="button"
                                 onClick={() => setSlot(t)}
                                 className={`px-3 py-2 rounded-2xl text-sm border transition
-                                  ${selected ? "bg-white/15 border-emerald-300/40 shadow-[0_0_0_1px_rgba(52,211,153,0.2)]" : "bg-white/5 border-white/10 hover:bg-white/10"}`}
+                                  ${
+                                    selected
+                                      ? "bg-white/15 border-emerald-300/40 shadow-[0_0_0_1px_rgba(52,211,153,0.2)]"
+                                      : "bg-white/5 border-white/10 hover:bg-white/10"
+                                  }`}
                               >
                                 {t}
                               </button>

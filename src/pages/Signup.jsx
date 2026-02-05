@@ -9,8 +9,6 @@ export default function Signup() {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    age: "",
-    city: "",
     contact: "",
     pass: "",
     cpass: "",
@@ -22,7 +20,8 @@ export default function Signup() {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" });
+
+    setErrors((old) => ({ ...old, [e.target.name]: "" }));
   };
 
   const validate = () => {
@@ -30,26 +29,39 @@ export default function Signup() {
 
     if (!form.name.trim()) err.name = "Name is required";
     if (!form.email.trim()) err.email = "Email is required";
-    if (!form.age || isNaN(form.age)) err.age = "Valid age required";
-    if (!form.city.trim()) err.city = "City is required";
     if (!form.contact.trim()) err.contact = "Contact is required";
-    if (!form.pass) err.pass = "Password is required";
-    if (form.pass !== form.cpass) err.cpass = "Password not match";
+
+    if (!form.pass.trim()) err.pass = "Password is required";
+
+    if (!form.cpass.trim()) err.cpass = "Confirm password is required";
+    else if (form.pass !== form.cpass) err.cpass = "Password not match";
 
     const users = getUsers();
-    if (users.find((u) => u.email === form.email))
+    if (form.email.trim() && users.find((u) => u.email === form.email.trim())) {
       err.email = "Email already registered";
+    }
 
     setErrors(err);
-    return Object.keys(err).length === 0;
+
+    if (Object.keys(err).length > 0) return false;
+    return true;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (!validate()) return;
 
     const users = getUsers();
-    users.push(form);
+
+    const newUser = {
+      ...form,
+      name: form.name.trim(),
+      email: form.email.trim(),
+      contact: form.contact.trim(),
+    };
+
+    users.push(newUser);
     setUsers(users);
 
     nav("/login", { replace: true });
@@ -64,15 +76,33 @@ export default function Signup() {
           <form onSubmit={handleSubmit} className="space-y-3">
             {/* NAME */}
             {errors.name && <p className="error">{errors.name}</p>}
-            <input className="input" name="name" placeholder="Full Name" value={form.name} onChange={handleChange} />
+            <input
+              className="input"
+              name="name"
+              placeholder="Full Name"
+              value={form.name}
+              onChange={handleChange}
+            />
 
             {/* EMAIL */}
             {errors.email && <p className="error">{errors.email}</p>}
-            <input className="input" name="email" placeholder="Email" value={form.email} onChange={handleChange} />
+            <input
+              className="input"
+              name="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={handleChange}
+            />
 
             {/* CONTACT */}
             {errors.contact && <p className="error">{errors.contact}</p>}
-            <input className="input" name="contact" placeholder="Contact" value={form.contact} onChange={handleChange} />
+            <input
+              className="input"
+              name="contact"
+              placeholder="Contact"
+              value={form.contact}
+              onChange={handleChange}
+            />
 
             {/* PASSWORD */}
             {errors.pass && <p className="error">{errors.pass}</p>}
@@ -85,7 +115,11 @@ export default function Signup() {
                 value={form.pass}
                 onChange={handleChange}
               />
-              <button type="button" onClick={() => setShowPass(!showPass)} className="eye-btn">
+              <button
+                type="button"
+                onClick={() => setShowPass(!showPass)}
+                className="eye-btn"
+              >
                 {showPass ? "🙈" : "👁️"}
               </button>
             </div>
@@ -101,12 +135,18 @@ export default function Signup() {
                 value={form.cpass}
                 onChange={handleChange}
               />
-              <button type="button" onClick={() => setShowCPass(!showCPass)} className="eye-btn">
+              <button
+                type="button"
+                onClick={() => setShowCPass(!showCPass)}
+                className="eye-btn"
+              >
                 {showCPass ? "🙈" : "👁️"}
               </button>
             </div>
 
-            <button className="btn-primary">Create Account</button>
+            <button type="submit" className="btn-primary">
+              Create Account
+            </button>
           </form>
 
           <p className="text-white/70 mt-4 text-sm">
