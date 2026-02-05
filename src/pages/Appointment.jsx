@@ -5,8 +5,7 @@ import PageTransition from "../components/ui/PageTransition.jsx";
 import DoctorCartoon from "../components/ui/DoctorCartoon.jsx";
 import { getAuthUser, isLoggedIn } from "../utils/storage.js";
 
-const API = "http://localhost:5000"; // json-server port (agar 3000 hai to yaha change kar do)
-const todayISO = new Date().toISOString().split("T")[0];
+const API = "http://localhost:5000";
 
 const DOCTORS = [
   { id: "d1", name: "Dr. Asha Verma", spec: "Cardiologist", fee: 600 },
@@ -17,135 +16,136 @@ const DOCTORS = [
 
 const SLOTS = ["09:00 AM", "10:30 AM", "12:00 PM", "03:00 PM", "04:30 PM", "06:00 PM"];
 
+const todayISO = new Date().toISOString().split("T")[0];
+
 export default function Appointment() {
   const nav = useNavigate();
   const user = getAuthUser();
 
   let [step, setStep] = useState(1);
+
   let [doctorId, setDoctorId] = useState(DOCTORS[0].id);
   let [date, setDate] = useState("");
   let [slot, setSlot] = useState("");
   let [symptoms, setSymptoms] = useState("");
-
   let [success, setSuccess] = useState(false);
-  let [loading, setLoading] = useState(false);
-  let [msg, setMsg] = useState("");
 
-  // toast (simple student style)
+  // toast
   let [toastOn, setToastOn] = useState(false);
   let [toastMsg, setToastMsg] = useState("");
-  const toastBox = useRef(null);
+  let toastRef = useRef(null);
 
-  const doctor = useMemo(() => DOCTORS.find((d) => d.id === doctorId), [doctorId]);
+  let doctor = useMemo(() => DOCTORS.find((d) => d.id === doctorId), [doctorId]);
 
   useEffect(() => {
     if (!isLoggedIn()) nav("/login", { replace: true });
   }, [nav]);
 
-  // animation
   useEffect(() => {
     gsap.fromTo(
       ".stepCard",
       { opacity: 0, y: 16, filter: "blur(10px)" },
-      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.45, ease: "power2.out" }
+      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5, ease: "power3.out" }
     );
   }, [step, success]);
 
-  let toastShow = (text) => {
+  function showToast(text) {
     setToastMsg(text);
     setToastOn(true);
 
     setTimeout(() => {
-      if (!toastBox.current) return;
-      gsap.fromTo(
-        toastBox.current,
-        { opacity: 0, y: 10 },
-        { opacity: 1, y: 0, duration: 0.25, ease: "power2.out" }
-      );
+      if (!toastRef.current) return;
+      gsap.fromTo(toastRef.current, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.22 });
     }, 0);
 
     setTimeout(() => {
       setToastOn(false);
       setToastMsg("");
     }, 2000);
-  };
+  }
 
-  let canGoNext = () => {
+  function canNext() {
     if (step === 1) return true;
-    if (step === 2) return !!date && !!slot;
+    if (step === 2) {
+      if (date === "") return false;
+      if (slot === "") return false;
+      return true;
+    }
     return true;
-  };
+  }
 
-  let next = () => {
-    setMsg("");
+  function canConfirm() {
+    if (symptoms.trim().length < 3) return false;
+    return true;
+  }
+
+  function next() {
     if (step === 1) setStep(2);
-    else if (step === 2) setStep(3);
-  };
+    else if (step === 2) {
+      if (!canNext()) {
+        showToast("Date aur slot select karo");
+        return;
+      }
+      setStep(3);
+    }
+  }
 
-  let back = () => {
-    setMsg("");
+  function back() {
     setStep((s) => Math.max(1, s - 1));
-  };
+  }
 
-  let resetForm = () => {
-    setSuccess(false);
-    setStep(1);
-    setDoctorId(DOCTORS[0].id);
-    setDate("");
-    setSlot("");
-    setSymptoms("");
-    setMsg("");
-  };
-
-  let confirm = async () => {
-    setMsg("");
-
-    if (!date || !slot) {
-      setMsg("Select date and slot");
-      toastShow("Fill details");
+  async function confirmBooking() {
+    if (!canConfirm()) {
+      showToast("Symptoms thoda likho");
       return;
     }
 
-    if (symptoms.trim().length < 3) {
-      setMsg("Write symptoms min 3 letters");
-      toastShow("Fill details");
-      return;
-    }
-
+    // simple body
     let appt = {
-      id: Date.now(),
+      id: Date.now(), // json-server ke liye ok
       userEmail: user?.email,
       userName: user?.name,
       doctorId: doctor.id,
       doctorName: doctor.name,
       specialty: doctor.spec,
       fee: doctor.fee,
-      date,
-      slot,
-      symptoms,
+      date: date,
+      slot: slot,
+      symptoms: symptoms,
       createdAt: new Date().toISOString(),
     };
 
     try {
-      setLoading(true);
-
       let res = await fetch(`${API}/appointments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(appt),
       });
 
-      if (!res.ok) throw new Error("Save failed");
+      if (!res.ok) {
+        showToast("Booked failed");
+        return;
+      }
 
       setSuccess(true);
-      toastShow("Booked");
+      showToast("Booked ✅");
+
+      setTimeout(() => {
+        gsap.fromTo(".successPop", { scale: 0.96, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35 });
+      }, 0);
     } catch (err) {
-      setMsg(err.message || "Booking failed");
-      toastShow("Booking failed");
-    } finally {
-      setLoading(false);
+      showToast("Booked failed");
     }
-  };
+  }
+
+  function resetForm() {
+    setSuccess(false);
+    setStep(1);
+    setDoctorId(DOCTORS[0].id);
+    setDate("");
+    setSlot("");
+    setSymptoms("");
+  }
 
   return (
     <PageTransition>
@@ -153,7 +153,6 @@ export default function Appointment() {
         {/* LEFT */}
         <div className="lg:col-span-2">
           <div className="glass rounded-3xl p-6 stepCard shadow-[0_25px_70px_rgba(0,0,0,0.55)]">
-            {/* HEADER */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-semibold">Book Appointment</h2>
@@ -163,75 +162,51 @@ export default function Appointment() {
               </div>
 
               <div className="flex gap-2 flex-wrap">
-                <span
-                  className={`px-3 py-1 rounded-2xl text-sm border ${
-                    step === 1 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"
-                  }`}
-                >
-                  1 Doctor
+                <span className={`px-3 py-1 rounded-2xl text-sm border ${step === 1 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"}`}>
+                  1. Doctor
                 </span>
-                <span
-                  className={`px-3 py-1 rounded-2xl text-sm border ${
-                    step === 2 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"
-                  }`}
-                >
-                  2 Slot
+                <span className={`px-3 py-1 rounded-2xl text-sm border ${step === 2 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"}`}>
+                  2. Slot
                 </span>
-                <span
-                  className={`px-3 py-1 rounded-2xl text-sm border ${
-                    step === 3 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"
-                  }`}
-                >
-                  3 Confirm
+                <span className={`px-3 py-1 rounded-2xl text-sm border ${step === 3 ? "bg-white/15 border-white/20" : "bg-white/5 border-white/10"}`}>
+                  3. Confirm
                 </span>
               </div>
             </div>
 
-            {/* ERROR MSG */}
-            {msg ? (
-              <div className="mt-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-400/20 text-amber-100 text-sm">
-                {msg}
-              </div>
-            ) : null}
-
-            {/* BODY */}
             {!success && (
               <>
                 {/* STEP 1 */}
                 {step === 1 && (
                   <div className="mt-6">
-                    <p className="text-white/80 font-medium mb-3">Choose doctor</p>
+                    <p className="text-white/80 font-medium mb-3">Choose your doctor</p>
 
                     <div className="grid sm:grid-cols-2 gap-3">
                       {DOCTORS.map((d) => {
-                        let sel = doctorId === d.id;
+                        let selected = doctorId === d.id;
 
                         return (
                           <button
                             key={d.id}
-                            onClick={() => setDoctorId(d.id)}
-                            className={`text-left p-4 rounded-2xl border transition relative ${
-                              sel
-                                ? "bg-white/15 border-emerald-300/60 ring-2 ring-emerald-300/30 shadow-[0_0_0_6px_rgba(16,185,129,0.08)] scale-[1.01]"
-                                : "bg-white/5 border-white/10 hover:bg-white/10"
-                            }`}
                             type="button"
+                            onClick={() => setDoctorId(d.id)}
+                            className={`text-left p-4 rounded-2xl border transition
+                              ${selected ? "bg-white/15 border-emerald-300/40 shadow-[0_0_0_1px_rgba(52,211,153,0.25)]" : "bg-white/5 border-white/10 hover:bg-white/10"}`}
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div>
                                 <p className="font-semibold">{d.name}</p>
                                 <p className="text-white/70 text-sm mt-1">{d.spec}</p>
                               </div>
-
-                              <div className="text-right">
-                                <div className="text-sm text-white/70">₹{d.fee}</div>
-                                {sel ? (
-                                  <div className="text-emerald-200 text-xs font-semibold mt-1">
-                                    Selected
-                                  </div>
-                                ) : null}
-                              </div>
+                              <div className="text-sm text-white/70">₹{d.fee}</div>
                             </div>
+
+                            {/* small selected tag */}
+                            {selected ? (
+                              <div className="mt-3 inline-flex text-xs px-3 py-1 rounded-2xl bg-emerald-500/15 border border-emerald-400/20 text-emerald-100">
+                                Selected
+                              </div>
+                            ) : null}
                           </button>
                         );
                       })}
@@ -242,56 +217,41 @@ export default function Appointment() {
                 {/* STEP 2 */}
                 {step === 2 && (
                   <div className="mt-6">
-                    <p className="text-white/80 font-medium mb-3">Pick date and time</p>
+                    <p className="text-white/80 font-medium mb-3">Pick date & time</p>
 
                     <div className="grid sm:grid-cols-2 gap-3">
                       <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                        <label className="text-white/70 text-sm">Date</label>
+                        <label className="text-white/70 text-sm">Select Date</label>
 
                         <input
                           type="date"
                           min={todayISO}
                           value={date}
                           onChange={(e) => setDate(e.target.value)}
-                          className={`mt-2 w-full px-4 py-3 rounded-2xl bg-white/5 border outline-none transition ${
-                            date
-                              ? "border-emerald-300/40 ring-2 ring-emerald-300/20"
-                              : "border-white/10"
-                          }`}
+                          className="mt-2 w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 outline-none"
                         />
-
-                        <p className="text-white/50 text-xs mt-2">Past date select nahi hogi</p>
                       </div>
 
                       <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                        <label className="text-white/70 text-sm">Slots</label>
+                        <label className="text-white/70 text-sm">Time Slots</label>
 
                         <div className="mt-3 flex flex-wrap gap-2">
                           {SLOTS.map((t) => {
-                            let sel = slot === t;
+                            let selected = slot === t;
 
                             return (
                               <button
                                 key={t}
-                                onClick={() => setSlot(t)}
-                                className={`px-3 py-2 rounded-2xl text-sm border transition ${
-                                  sel
-                                    ? "bg-emerald-500/15 border-emerald-300/60 ring-2 ring-emerald-300/25 shadow-[0_0_0_6px_rgba(16,185,129,0.08)]"
-                                    : "bg-white/5 border-white/10 hover:bg-white/10"
-                                }`}
                                 type="button"
+                                onClick={() => setSlot(t)}
+                                className={`px-3 py-2 rounded-2xl text-sm border transition
+                                  ${selected ? "bg-white/15 border-emerald-300/40 shadow-[0_0_0_1px_rgba(52,211,153,0.2)]" : "bg-white/5 border-white/10 hover:bg-white/10"}`}
                               >
                                 {t}
                               </button>
                             );
                           })}
                         </div>
-
-                        {slot ? (
-                          <p className="text-emerald-200/80 text-xs mt-3">
-                            Selected slot: {slot}
-                          </p>
-                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -304,7 +264,7 @@ export default function Appointment() {
 
                     <div className="grid sm:grid-cols-2 gap-3">
                       <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                        <p className="text-white/70 text-sm">Doctor</p>
+                        <p className="text-white/70 text-sm">Selected Doctor</p>
                         <p className="font-semibold mt-1">{doctor.name}</p>
                         <p className="text-white/70 text-sm mt-1">
                           {doctor.spec} • ₹{doctor.fee}
@@ -319,16 +279,13 @@ export default function Appointment() {
                     </div>
 
                     <div className="mt-3 p-4 rounded-2xl bg-white/5 border border-white/10">
-                      <label className="text-white/70 text-sm">Symptoms</label>
+                      <label className="text-white/70 text-sm">Symptoms / Notes</label>
+
                       <textarea
                         value={symptoms}
                         onChange={(e) => setSymptoms(e.target.value)}
-                        placeholder="Eg fever headache"
-                        className={`mt-2 w-full min-h-[110px] px-4 py-3 rounded-2xl bg-white/5 border outline-none resize-none transition ${
-                          symptoms.trim().length >= 3
-                            ? "border-emerald-300/40 ring-2 ring-emerald-300/20"
-                            : "border-white/10"
-                        }`}
+                        placeholder="Eg: fever, headache, skin allergy..."
+                        className="mt-2 w-full min-h-[110px] px-4 py-3 rounded-2xl bg-white/5 border border-white/10 outline-none resize-none"
                       />
                     </div>
                   </div>
@@ -337,60 +294,61 @@ export default function Appointment() {
                 {/* ACTIONS */}
                 <div className="mt-6 flex items-center justify-between">
                   <button
-                    onClick={back}
-                    disabled={step === 1 || loading}
-                    className="px-5 py-2.5 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/10 transition disabled:opacity-40"
                     type="button"
+                    onClick={back}
+                    disabled={step === 1}
+                    className="px-5 py-2.5 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/10 transition disabled:opacity-40"
                   >
                     Back
                   </button>
 
                   {step < 3 ? (
                     <button
-                      onClick={next}
-                      disabled={!canGoNext() || loading}
-                      className="px-6 py-2.5 rounded-2xl bg-white/15 hover:bg-white/20 transition border border-white/15 disabled:opacity-40"
                       type="button"
+                      onClick={next}
+                      disabled={!canNext()}
+                      className="px-6 py-2.5 rounded-2xl bg-white/15 hover:bg-white/20 transition border border-white/15 disabled:opacity-40"
                     >
                       Next
                     </button>
                   ) : (
                     <button
-                      onClick={confirm}
-                      disabled={loading}
-                      className="px-6 py-2.5 rounded-2xl bg-emerald-500/15 hover:bg-emerald-500/20 transition border border-emerald-400/20 disabled:opacity-40"
                       type="button"
+                      onClick={confirmBooking}
+                      disabled={!canConfirm()}
+                      className="px-6 py-2.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/25 transition border border-emerald-400/20 disabled:opacity-40"
                     >
-                      {loading ? "Saving" : "Confirm"}
+                      Confirm Booking
                     </button>
                   )}
                 </div>
               </>
             )}
 
-            {/* SUCCESS */}
             {success && (
-              <div className="mt-6">
+              <div className="mt-6 successPop">
                 <div className="p-5 rounded-3xl bg-emerald-500/10 border border-emerald-400/20">
-                  <h3 className="text-xl font-semibold">Appointment booked</h3>
+                  <h3 className="text-xl font-semibold">Appointment Confirmed ✅</h3>
                   <p className="text-white/70 mt-2">
                     {doctor.name} • {date} • {slot}
                   </p>
+                  <p className="text-white/60 mt-2 text-sm">Symptoms: {symptoms}</p>
 
                   <div className="mt-5 flex gap-2 flex-wrap">
                     <button
+                      type="button"
                       onClick={() => nav("/dashboard", { replace: true })}
                       className="px-5 py-2.5 rounded-2xl bg-white/15 hover:bg-white/20 transition border border-white/15"
-                      type="button"
                     >
-                      Dashboard
+                      Go to Dashboard
                     </button>
+
                     <button
+                      type="button"
                       onClick={resetForm}
                       className="px-5 py-2.5 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/10 transition"
-                      type="button"
                     >
-                      Book another
+                      Book Another
                     </button>
                   </div>
                 </div>
@@ -406,16 +364,16 @@ export default function Appointment() {
       </div>
 
       {/* TOAST */}
-      {toastOn && (
+      {toastOn ? (
         <div
-          ref={toastBox}
+          ref={toastRef}
           className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999]
                      px-5 py-3 rounded-2xl border border-white/15 bg-white/10 text-white
                      shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
         >
           {toastMsg}
         </div>
-      )}
+      ) : null}
     </PageTransition>
   );
 }

@@ -111,7 +111,7 @@ export default function Navbar() {
 
               {/* RIGHT SIDE */}
               <div className="ml-auto flex items-center gap-3 shrink-0">
-                {/* ✅ NOT logged in => show Appointment */}
+                {/* NOT logged in => show Appointment */}
                 {!logged && (
                   <button
                     onClick={() => go("/appointment")}
@@ -122,7 +122,7 @@ export default function Navbar() {
                   </button>
                 )}
 
-                {/* ✅ logged in => show Dashboard + Logout */}
+                {/*  logged in => show Dashboard + Logout */}
                 {logged && (
                   <div className="hidden md:flex items-center gap-2">
                     <button
@@ -185,7 +185,7 @@ export default function Navbar() {
               {/* mobile extra buttons */}
               <div className="h-px bg-white/10 my-1" />
 
-              {/* ✅ NOT logged in => Appointment */}
+              {/* NOT logged in => Appointment */}
               {!logged && (
                 <button
                   onClick={() => go("/appointment")}
@@ -196,7 +196,7 @@ export default function Navbar() {
                 </button>
               )}
 
-              {/* ✅ logged in => dashboard + logout */}
+              {/* logged in => dashboard + logout */}
               {logged && (
                 <>
                   <button
