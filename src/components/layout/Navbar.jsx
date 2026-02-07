@@ -63,10 +63,7 @@ export default function Navbar() {
                   {/* first 3 */}
                   {links.slice(0, 3).map((l) => (
                     <li key={l.to}>
-                      <Link
-                        to={l.to}
-                        className={`navlink ${active(l.to) ? "navactive" : ""}`}
-                      >
+                      <Link to={l.to} className={`navlink ${active(l.to) ? "navactive" : ""}`}>
                         {l.label}
                       </Link>
                     </li>
@@ -78,11 +75,7 @@ export default function Navbar() {
                     onMouseEnter={() => setOpenMega(true)}
                     onMouseLeave={() => setOpenMega(false)}
                   >
-                    <span
-                      className={`navlink cursor-pointer ${
-                        openMega ? "navactive" : ""
-                      }`}
-                    >
+                    <span className={`navlink cursor-pointer ${openMega ? "navactive" : ""}`}>
                       Departments & Services
                     </span>
 
@@ -98,10 +91,7 @@ export default function Navbar() {
                   {/* rest */}
                   {links.slice(3).map((l) => (
                     <li key={l.to}>
-                      <Link
-                        to={l.to}
-                        className={`navlink ${active(l.to) ? "navactive" : ""}`}
-                      >
+                      <Link to={l.to} className={`navlink ${active(l.to) ? "navactive" : ""}`}>
                         {l.label}
                       </Link>
                     </li>
@@ -111,24 +101,23 @@ export default function Navbar() {
 
               {/* RIGHT SIDE */}
               <div className="ml-auto flex items-center gap-3 shrink-0">
-                {/* NOT logged in => show Appointment */}
+                {/* NOT logged in => show Appointment (HIDE ON MOBILE) */}
                 {!logged && (
                   <button
                     onClick={() => go("/appointment")}
-                    className="px-4 py-2 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition text-sm text-white/90"
+                    className="hidden sm:inline-flex px-4 py-2 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition text-sm text-white/90"
                     type="button"
                   >
                     Appointment
                   </button>
                 )}
 
-                {/*  logged in => show Dashboard + Logout */}
+                {/* logged in => show Dashboard + Logout */}
                 {logged && (
                   <div className="hidden md:flex items-center gap-2">
                     <button
                       onClick={() => go("/dashboard")}
-                      className="px-4 py-2 rounded-2xl bg-white/5 border border-white/10 text-white/80
-                                 hover:bg-white/10 hover:text-white transition"
+                      className="px-4 py-2 rounded-2xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition"
                       type="button"
                     >
                       Dashboard
@@ -136,8 +125,7 @@ export default function Navbar() {
 
                     <button
                       onClick={handleLogout}
-                      className="px-4 py-2 rounded-2xl bg-red-500/10 border border-red-400/20 text-red-200
-                                 hover:bg-red-500/15 transition"
+                      className="px-4 py-2 rounded-2xl bg-red-500/10 border border-red-400/20 text-red-200 hover:bg-red-500/15 transition"
                       type="button"
                     >
                       Logout
@@ -152,9 +140,7 @@ export default function Navbar() {
                   aria-label="Open menu"
                   type="button"
                 >
-                  <span className="text-white/90 text-xl">
-                    {mobileOpen ? "✕" : "☰"}
-                  </span>
+                  <span className="text-white/90 text-xl">{mobileOpen ? "✕" : "☰"}</span>
                 </button>
               </div>
             </div>
@@ -170,12 +156,11 @@ export default function Navbar() {
                 <button
                   key={l.to}
                   onClick={() => go(l.to)}
-                  className={`text-left px-4 py-3 rounded-2xl border transition
-                    ${
-                      active(l.to)
-                        ? "bg-white/10 border-white/15 text-white"
-                        : "bg-white/5 border-white/10 text-white/80 hover:bg-white/10"
-                    }`}
+                  className={`text-left px-4 py-3 rounded-2xl border transition ${
+                    active(l.to)
+                      ? "bg-white/10 border-white/15 text-white"
+                      : "bg-white/5 border-white/10 text-white/80 hover:bg-white/10"
+                  }`}
                   type="button"
                 >
                   {l.label}
@@ -185,7 +170,7 @@ export default function Navbar() {
               {/* mobile extra buttons */}
               <div className="h-px bg-white/10 my-1" />
 
-              {/* NOT logged in => Appointment */}
+              {/* NOT logged in => Appointment (MOBILE MENU ME DIKHEGA) */}
               {!logged && (
                 <button
                   onClick={() => go("/appointment")}
